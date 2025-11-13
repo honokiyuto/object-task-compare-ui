@@ -1,10 +1,10 @@
-# 静的コンテンツを GitHub Pages にデプロイするためのシンプルなワークフロー
+# Vite で Build して GitHub Pages にデプロイ
 name: Deploy static content to Pages
 
 on:
   # 対象ブランチプッシュ時に実行されます
   push:
-    branches: ['main']
+    branches: ["main"]
 
   # Actions タブから手動でワークフローを実行できるようにします
   workflow_dispatch:
@@ -17,7 +17,7 @@ permissions:
 
 # 1 つの同時デプロイメントを可能にする
 concurrency:
-  group: 'pages'
+  group: "pages"
   cancel-in-progress: true
 
 jobs:
@@ -30,13 +30,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: 'pnpm'
+          node-version: "24.2.0"
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Build
         run: pnpm run build
       - name: Setup Pages
@@ -45,7 +48,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # dist フォルダーのアップロード
-          path: './docs'
+          path: "./docs"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
