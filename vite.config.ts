@@ -8,4 +8,5 @@ export default defineConfig({
   build: {
     outDir: 'docs',
   },
+  base: '/object-task-compare-ui/',
 })
