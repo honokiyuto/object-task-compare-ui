@@ -417,10 +417,12 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
 
 interface TagListManagementProps {
   onTagClick: (tag: TagType) => void;
+  selectedTagId?: string | null;
 }
 
 const TagListManagement: React.FC<TagListManagementProps> = ({
   onTagClick,
+  selectedTagId = null,
 }) => {
   const [tags, setTags] = useState<TagType[]>(MOCK_TAGS);
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
@@ -489,7 +491,7 @@ const TagListManagement: React.FC<TagListManagementProps> = ({
               <div className="flex-grow">
                 {editingTagId === tag.id ? (
                   <form onSubmit={handleEditSave} className="flex p-4">
-                    <Tag className="w-5 h-5 mr-3 text-gray-400 flex-shrink-0 mt-2" />
+                    <Tag className="w-5 h-5 mr-3 text-gray-400 shrink-0 mt-2" />
                     <input
                       type="text"
                       value={tempTagName}
@@ -501,11 +503,23 @@ const TagListManagement: React.FC<TagListManagementProps> = ({
                   </form>
                 ) : (
                   <div
-                    className="flex items-center p-4 cursor-pointer group hover:bg-gray-50"
+                    className={`flex items-center p-4 cursor-pointer group transition-colors ${
+                      selectedTagId === tag.id
+                        ? 'bg-blue-50 border-l-4 border-blue-600'
+                        : 'hover:bg-gray-50'
+                    }`}
                     onClick={() => onTagClick(tag)}
                   >
-                    <Tag className="w-5 h-5 mr-3 text-gray-400 group-hover:text-blue-600" />
-                    <span className="text-gray-700 font-medium group-hover:text-blue-600">
+                    <Tag className={`w-5 h-5 mr-3 ${
+                      selectedTagId === tag.id
+                        ? 'text-blue-600'
+                        : 'text-gray-400 group-hover:text-blue-600'
+                    }`} />
+                    <span className={`font-medium ${
+                      selectedTagId === tag.id
+                        ? 'text-blue-600'
+                        : 'text-gray-700 group-hover:text-blue-600'
+                    }`}>
                       {tag.name}
                     </span>
                   </div>
@@ -513,7 +527,7 @@ const TagListManagement: React.FC<TagListManagementProps> = ({
               </div>
 
               {!editingTagId && (
-                <div className="flex flex-shrink-0 px-4">
+                <div className="flex shrink-0 px-4">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -615,9 +629,9 @@ const BookListItem: React.FC<BookListItemProps> = ({ book }) => {
       <img
         src={book.cover}
         alt={book.title}
-        className="w-12 h-16 object-cover rounded shadow-sm flex-shrink-0"
+        className="w-12 h-16 object-cover rounded shadow-sm shrink-0"
       />
-      <div className="flex-grow overflow-hidden">
+      <div className="grow overflow-hidden">
         <p className="font-semibold text-gray-800 truncate">{book.title}</p>
         <p className="text-sm text-gray-500 truncate">{book.author}</p>
       </div>
@@ -660,7 +674,7 @@ const TagBooksModal: React.FC<TagBooksModalProps> = ({
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto flex-grow">
+        <div className="p-6 overflow-y-auto grow">
           <h4 className="text-lg font-bold text-gray-800 mb-4">関連する図書</h4>
           {taggedBooks.length > 0 ? (
             <div className="space-y-2">
@@ -808,7 +822,11 @@ export default function ObjectOrientedUI() {
 
   const handleTagClick = (tag: TagType) => {
     setSelectedTag(tag);
-    setIsTagBooksModalOpen(true);
+    // SPの場合のみモーダルを開く(mdサイズ以上では開かない)
+    const isMobile = window.innerWidth < 768; // Tailwindのmd breakpoint
+    if (isMobile) {
+      setIsTagBooksModalOpen(true);
+    }
   };
 
   const HeaderTabs = () => (
@@ -963,8 +981,56 @@ export default function ObjectOrientedUI() {
               <h2 className="text-xl font-bold text-gray-800">タグ管理</h2>
             </div>
 
-            <div className="max-w-3xl mx-auto">
-              <TagListManagement onTagClick={handleTagClick} />
+            {/* SP表示: タグ一覧のみ */}
+            <div className="md:hidden max-w-3xl mx-auto">
+              <TagListManagement onTagClick={handleTagClick} selectedTagId={selectedTag?.id} />
+            </div>
+
+            {/* PC表示: 左右分割レイアウト */}
+            <div className="hidden md:grid md:grid-cols-5 gap-6">
+              {/* 左側: タグ一覧 (2カラム分) */}
+              <div className="md:col-span-2">
+                <TagListManagement onTagClick={handleTagClick} selectedTagId={selectedTag?.id} />
+              </div>
+
+              {/* 右側: 選択されたタグの本一覧 (3カラム分) */}
+              <div className="md:col-span-3">
+                {selectedTag ? (
+                  <div className="bg-white rounded-lg shadow border border-gray-100 p-6">
+                    <div className="flex items-center mb-4 pb-3 border-b border-gray-100">
+                      <Tag className="w-5 h-5 mr-2 text-blue-600" />
+                      <h3 className="text-lg font-bold text-gray-800">
+                        {selectedTag.name}
+                      </h3>
+                      <span className="ml-3 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                        {MOCK_ALL_BOOKS.filter((book) => book.tags && book.tags.includes(selectedTag.id)).length} 件
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {MOCK_ALL_BOOKS.filter(
+                        (book) => book.tags && book.tags.includes(selectedTag.id)
+                      ).length > 0 ? (
+                        MOCK_ALL_BOOKS.filter(
+                          (book) => book.tags && book.tags.includes(selectedTag.id)
+                        ).map((book) => (
+                          <BookListItem key={book.id} book={book} />
+                        ))
+                      ) : (
+                        <p className="text-gray-500 text-center py-8">
+                          このタグが付いた本はありません。
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg shadow border border-gray-100 p-12 text-center">
+                    <Tag className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-500">
+                      左側のタグを選択すると、関連する図書が表示されます
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </section>
         )}
