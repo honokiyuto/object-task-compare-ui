@@ -493,7 +493,7 @@ const BookForm: React.FC<BookFormProps> = ({
                   className="w-full h-full object-cover"
                 />
                 {!isReadOnly && (
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black bg-transparent group-hover:bg-opacity-30 transition-all flex items-center justify-center">
                     <button className="opacity-0 group-hover:opacity-100 bg-white text-gray-800 px-4 py-2 rounded-full font-medium text-sm shadow-sm hover:bg-gray-100 transition-all">
                       画像を変更
                     </button>

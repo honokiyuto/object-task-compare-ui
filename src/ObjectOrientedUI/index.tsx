@@ -510,16 +510,20 @@ const TagListManagement: React.FC<TagListManagementProps> = ({
                     }`}
                     onClick={() => onTagClick(tag)}
                   >
-                    <Tag className={`w-5 h-5 mr-3 ${
-                      selectedTagId === tag.id
-                        ? 'text-blue-600'
-                        : 'text-gray-400 group-hover:text-blue-600'
-                    }`} />
-                    <span className={`font-medium ${
-                      selectedTagId === tag.id
-                        ? 'text-blue-600'
-                        : 'text-gray-700 group-hover:text-blue-600'
-                    }`}>
+                    <Tag
+                      className={`w-5 h-5 mr-3 ${
+                        selectedTagId === tag.id
+                          ? 'text-blue-600'
+                          : 'text-gray-400 group-hover:text-blue-600'
+                      }`}
+                    />
+                    <span
+                      className={`font-medium ${
+                        selectedTagId === tag.id
+                          ? 'text-blue-600'
+                          : 'text-gray-700 group-hover:text-blue-600'
+                      }`}
+                    >
                       {tag.name}
                     </span>
                   </div>
@@ -983,14 +987,20 @@ export default function ObjectOrientedUI() {
 
             {/* SP表示: タグ一覧のみ */}
             <div className="md:hidden max-w-3xl mx-auto">
-              <TagListManagement onTagClick={handleTagClick} selectedTagId={selectedTag?.id} />
+              <TagListManagement
+                onTagClick={handleTagClick}
+                selectedTagId={selectedTag?.id}
+              />
             </div>
 
             {/* PC表示: 左右分割レイアウト */}
             <div className="hidden md:grid md:grid-cols-5 gap-6">
               {/* 左側: タグ一覧 (2カラム分) */}
               <div className="md:col-span-2">
-                <TagListManagement onTagClick={handleTagClick} selectedTagId={selectedTag?.id} />
+                <TagListManagement
+                  onTagClick={handleTagClick}
+                  selectedTagId={selectedTag?.id}
+                />
               </div>
 
               {/* 右側: 選択されたタグの本一覧 (3カラム分) */}
@@ -1003,15 +1013,23 @@ export default function ObjectOrientedUI() {
                         {selectedTag.name}
                       </h3>
                       <span className="ml-3 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                        {MOCK_ALL_BOOKS.filter((book) => book.tags && book.tags.includes(selectedTag.id)).length} 件
+                        {
+                          MOCK_ALL_BOOKS.filter(
+                            (book) =>
+                              book.tags && book.tags.includes(selectedTag.id)
+                          ).length
+                        }{' '}
+                        件
                       </span>
                     </div>
                     <div className="space-y-2">
                       {MOCK_ALL_BOOKS.filter(
-                        (book) => book.tags && book.tags.includes(selectedTag.id)
+                        (book) =>
+                          book.tags && book.tags.includes(selectedTag.id)
                       ).length > 0 ? (
                         MOCK_ALL_BOOKS.filter(
-                          (book) => book.tags && book.tags.includes(selectedTag.id)
+                          (book) =>
+                            book.tags && book.tags.includes(selectedTag.id)
                         ).map((book) => (
                           <BookListItem key={book.id} book={book} />
                         ))
