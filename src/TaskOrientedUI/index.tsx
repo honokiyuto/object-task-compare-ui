@@ -8,10 +8,7 @@ import {
   Tag,
   Tags,
   Plus,
-  LogIn,
   BookOpen,
-  X,
-  User,
   ArrowLeft,
   Trash2,
   AlertTriangle,
@@ -205,92 +202,22 @@ const TILE_DATA: TileType[] = [
 
 // --- 共通コンポーネント ---
 
-// ログインモーダルコンポーネント
-interface LoginModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-all duration-300">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
-          <h3 className="text-xl font-semibold text-gray-800 flex items-center">
-            <LogIn className="w-5 h-5 mr-2 text-blue-600" />
-            ログイン
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-200 rounded-full"
-          >
-            <X size={24} />
-          </button>
-        </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              利用者カード番号
-            </label>
-            <input
-              type="text"
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
-              placeholder="1234567890"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              パスワード
-            </label>
-            <input
-              type="password"
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
-              placeholder="••••••••"
-            />
-          </div>
-          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 shadow-md hover:shadow-lg mt-4">
-            ログインする
-          </button>
-          <div className="text-center mt-4">
-            <a href="#" className="text-sm text-blue-600 hover:underline">
-              パスワードをお忘れの方はこちら
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // ホーム画面用ヘッダー
-interface HomeHeaderProps {
-  onLoginClick: () => void;
-}
-
-const HomeHeader: React.FC<HomeHeaderProps> = ({ onLoginClick }) => (
+const HomeHeader: React.FC = () => (
   <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div className="flex items-center space-x-3 group cursor-pointer">
-        <div className="bg-blue-600 p-2 rounded-lg shadow-md group-hover:bg-blue-700 transition-colors">
+      <div className="flex items-center space-x-3 group">
+        <div className="bg-blue-600 p-2 rounded-lg shadow-md">
           <BookOpen className="text-white w-6 h-6" />
         </div>
         <div>
-          <h1 className="text-lg md:text-xl font-bold text-gray-800 tracking-tight group-hover:text-blue-800 transition-colors">
+          <h1 className="text-lg md:text-xl font-bold text-gray-800 tracking-tight">
             自宅本棚管理アプリ
           </h1>
           <p className="text-xs text-gray-500 hidden md:block -mt-1">
             My Personal Library
           </p>
         </div>
-      </div>
-      <div className="flex items-center space-x-2 md:space-x-4">
-        <button
-          onClick={onLoginClick}
-          className="flex items-center space-x-2 bg-blue-50 text-blue-700 px-3 py-2 md:px-4 md:py-2 rounded-full font-medium hover:bg-blue-100 hover:shadow-md active:scale-95 transition-all duration-200 border border-blue-100"
-        >
-          <User className="w-5 h-5" />
-        </button>
       </div>
     </div>
   </header>
@@ -353,15 +280,11 @@ const Page: React.FC<PageProps> = ({ title, onBack, children }) => (
 // ホーム画面 (タイル)
 interface HomeScreenProps {
   navigateTo: (screenName: ScreenName, props?: ScreenProps) => void;
-  onLoginClick: () => void;
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = ({
-  navigateTo,
-  onLoginClick,
-}) => (
+const HomeScreen: React.FC<HomeScreenProps> = ({ navigateTo }) => (
   <div className="flex flex-col min-h-screen">
-    <HomeHeader onLoginClick={onLoginClick} />
+    <HomeHeader />
     <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="max-w-5xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
@@ -987,7 +910,6 @@ const TagFormScreen: React.FC<TagFormScreenProps> = ({ navigateTo, tag }) => {
 
 // --- メインアプリケーションコンポーネント ---
 export default function TaskOrientedUI() {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [screen, setScreen] = useState<ScreenName>('home');
   const [screenProps, setScreenProps] = useState<ScreenProps>({}); // 画面に渡すデータ
 
@@ -999,12 +921,7 @@ export default function TaskOrientedUI() {
   const renderScreen = () => {
     switch (screen) {
       case 'home':
-        return (
-          <HomeScreen
-            navigateTo={navigateTo}
-            onLoginClick={() => setIsLoginModalOpen(true)}
-          />
-        );
+        return <HomeScreen navigateTo={navigateTo} />;
       case 'bookList':
         return (
           <BookListScreen navigateTo={navigateTo} mode={screenProps.mode} />
@@ -1039,24 +956,13 @@ export default function TaskOrientedUI() {
       case 'editTagForm':
         return <TagFormScreen navigateTo={navigateTo} tag={screenProps.tag} />;
       default:
-        return (
-          <HomeScreen
-            navigateTo={navigateTo}
-            onLoginClick={() => setIsLoginModalOpen(true)}
-          />
-        );
+        return <HomeScreen navigateTo={navigateTo} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-gray-900">
       {renderScreen()}
-
-      {/* ログインモーダル */}
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-      />
     </div>
   );
 }

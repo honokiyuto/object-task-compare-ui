@@ -1,10 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import {
   Search,
-  LogIn,
   BookOpen,
   X,
-  User,
   Book,
   Plus,
   ArrowDownWideNarrow,
@@ -105,7 +103,7 @@ const MOCK_ALL_BOOKS: BookType[] = [
   {
     id: 106,
     title: 'あの夏を傍ら外観',
-    author: 'アイザック・アシモフ',
+    author: '鄭醤夷',
     isbn: '978-4-00-666666-6',
     tags: ['t2'],
     review: 'ファウンデーションシリーズ。',
@@ -127,7 +125,7 @@ const MOCK_ALL_BOOKS: BookType[] = [
   {
     id: 202,
     title: '是の俊な内裏う',
-    author: 'リチャード・ドーキンス',
+    author: '高相 妻木',
     isbn: '978-4-00-888888-8',
     tags: ['t4'],
     review: '利己的な遺伝子。',
@@ -163,63 +161,6 @@ const BookCard: React.FC<BookCardProps> = ({ book, onEdit }) => {
           <p className="text-xs text-gray-500 line-clamp-1 mt-1">
             {book.author}
           </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-interface LoginModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-all duration-300">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
-          <h3 className="text-xl font-semibold text-gray-800 flex items-center">
-            <LogIn className="w-5 h-5 mr-2 text-blue-600" />
-            ログイン
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-200 rounded-full"
-          >
-            <X size={24} />
-          </button>
-        </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              利用者カード番号
-            </label>
-            <input
-              type="text"
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
-              placeholder="1234567890"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              パスワード
-            </label>
-            <input
-              type="password"
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
-              placeholder="••••••••"
-            />
-          </div>
-          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 shadow-md hover:shadow-lg mt-4">
-            ログインする
-          </button>
-          <div className="text-center mt-4">
-            <a href="#" className="text-sm text-blue-600 hover:underline">
-              パスワードをお忘れの方はこちら
-            </a>
-          </div>
         </div>
       </div>
     </div>
@@ -823,7 +764,6 @@ const Drawer: React.FC<DrawerProps> = ({
 };
 
 export default function ObjectOrientedUI() {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [activeTab, setActiveTab] = useState<'books' | 'tags'>('books');
   const [isBookFormModalOpen, setIsBookFormModalOpen] = useState(false);
@@ -911,12 +851,12 @@ export default function ObjectOrientedUI() {
             <Menu className="w-6 h-6" />
           </button>
 
-          <div className="shrink-0 flex items-center space-x-3 group cursor-pointer">
-            <div className="bg-blue-600 p-2 rounded-lg shadow-md group-hover:bg-blue-700 transition-colors">
+          <div className="shrink-0 flex items-center space-x-3 group">
+            <div className="bg-blue-600 p-2 rounded-lg shadow-md">
               <BookOpen className="text-white w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-md md:text-lg font-bold text-gray-800 tracking-tight group-hover:text-blue-800 transition-colors">
+              <h1 className="text-md md:text-lg font-bold text-gray-800 tracking-tight">
                 自宅本棚管理アプリ
               </h1>
               <p className="text-xs text-gray-500 hidden md:block -mt-1">
@@ -925,18 +865,12 @@ export default function ObjectOrientedUI() {
             </div>
           </div>
 
+          {/* justify-between で真ん中にロゴが来るように、空のdivを配置 */}
+          <div></div>
+
           {/* デスクトップ用タブ */}
           <div className="grow hidden md:flex justify-end items-center px-4 h-full">
             <HeaderTabs />
-          </div>
-
-          <div className="shrink-0 flex items-center space-x-2 md:space-x-4 ml-4">
-            <button
-              onClick={() => setIsLoginModalOpen(true)}
-              className="flex items-center space-x-2 bg-blue-50 text-blue-700 px-3 py-2 md:px-4 md:py-2 rounded-full font-medium hover:bg-blue-100 hover:shadow-md active:scale-95 transition-all duration-200 border border-blue-100"
-            >
-              <User className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </header>
@@ -1053,11 +987,6 @@ export default function ObjectOrientedUI() {
           <Plus className="w-6 h-6 group-hover:scale-110 transition-transform" />
         </button>
       )}
-
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-      />
 
       <BookFormModal
         isOpen={isBookFormModalOpen}
