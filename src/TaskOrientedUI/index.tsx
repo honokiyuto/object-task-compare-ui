@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Search,
   Pencil,
@@ -12,6 +12,8 @@ import {
   ArrowLeft,
   Trash2,
   AlertTriangle,
+  CheckCircle,
+  X,
 } from 'lucide-react';
 
 // --- 型定義 ---
@@ -45,6 +47,11 @@ type ScreenName =
   | 'editTagForm';
 
 type ModeType = 'search' | 'edit' | 'delete' | 'review';
+
+type ToastType = {
+  message: string;
+  visible: boolean;
+};
 
 interface ScreenProps {
   book?: BookType;
@@ -201,6 +208,43 @@ const TILE_DATA: TileType[] = [
 ];
 
 // --- 共通コンポーネント ---
+
+// トーストコンポーネント
+interface ToastProps {
+  message: string;
+  visible: boolean;
+  onClose: () => void;
+}
+
+const Toast: React.FC<ToastProps> = ({ message, visible, onClose }) => {
+  useEffect(() => {
+    if (visible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3000); // 3秒後に自動で閉じる
+      return () => clearTimeout(timer);
+    }
+  }, [visible, onClose]);
+
+  if (!visible) return null;
+
+  return (
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top duration-300">
+      <div className="bg-green-50 rounded-lg shadow-xl border border-green-200 p-4 flex items-center space-x-3 min-w-[320px]">
+        <div className="shrink-0 bg-green-100 rounded-full p-1">
+          <CheckCircle className="w-6 h-6 text-green-600" />
+        </div>
+        <p className="text-green-800 font-medium grow">{message}</p>
+        <button
+          onClick={onClose}
+          className="shrink-0 text-green-600 hover:text-green-700 transition-colors p-1 hover:bg-green-100 rounded-full"
+        >
+          <X size={18} />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 // ホーム画面用ヘッダー
 const HomeHeader: React.FC = () => (
@@ -661,11 +705,13 @@ const BookForm: React.FC<BookFormProps> = ({
 interface BookFormScreenProps {
   navigateTo: (screenName: ScreenName, props?: ScreenProps) => void;
   book?: BookType;
+  showToast: (message: string) => void;
 }
 
 const BookFormScreen: React.FC<BookFormScreenProps> = ({
   navigateTo,
   book,
+  showToast,
 }) => {
   const isEditMode = !!book;
   const title = isEditMode ? '図書情報の編集' : '図書の新規登録';
@@ -675,7 +721,12 @@ const BookFormScreen: React.FC<BookFormScreenProps> = ({
         bookToEdit={book}
         isReviewOnly={false}
         isViewOnly={false}
-        onSave={() => navigateTo('home')}
+        onSave={() => {
+          showToast(
+            isEditMode ? '図書情報を更新しました' : '図書を登録しました'
+          );
+          navigateTo('home');
+        }}
         onCancel={() => navigateTo('home')}
         /* onDeleteプロパティを削除しました */
       />
@@ -687,18 +738,23 @@ const BookFormScreen: React.FC<BookFormScreenProps> = ({
 interface BookReviewScreenProps {
   navigateTo: (screenName: ScreenName, props?: ScreenProps) => void;
   book: BookType;
+  showToast: (message: string) => void;
 }
 
 const BookReviewScreen: React.FC<BookReviewScreenProps> = ({
   navigateTo,
   book,
+  showToast,
 }) => (
   <Page title="感想文の編集" onBack={() => navigateTo('home')}>
     <BookForm
       bookToEdit={book}
       isReviewOnly={true}
       isViewOnly={false}
-      onSave={() => navigateTo('home')}
+      onSave={() => {
+        showToast('感想文を更新しました');
+        navigateTo('home');
+      }}
       onCancel={() => navigateTo('home')}
     />
   </Page>
@@ -732,11 +788,13 @@ const BookViewScreen: React.FC<BookViewScreenProps> = ({
 interface DeleteConfirmScreenProps {
   navigateTo: (screenName: ScreenName, props?: ScreenProps) => void;
   book: BookType;
+  showToast: (message: string) => void;
 }
 
 const DeleteConfirmScreen: React.FC<DeleteConfirmScreenProps> = ({
   navigateTo,
   book,
+  showToast,
 }) => (
   <Page
     title="削除の確認"
@@ -762,7 +820,10 @@ const DeleteConfirmScreen: React.FC<DeleteConfirmScreenProps> = ({
             キャンセル
           </button>
           <button
-            onClick={() => navigateTo('home')} // 本来は削除処理
+            onClick={() => {
+              showToast('図書を削除しました');
+              navigateTo('home');
+            }}
             className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-sm hover:shadow transition-all w-1/2"
           >
             削除する
@@ -850,9 +911,14 @@ const TagListScreen: React.FC<TagListScreenProps> = ({ navigateTo }) => (
 interface TagFormScreenProps {
   navigateTo: (screenName: ScreenName, props?: ScreenProps) => void;
   tag?: TagType;
+  showToast: (message: string) => void;
 }
 
-const TagFormScreen: React.FC<TagFormScreenProps> = ({ navigateTo, tag }) => {
+const TagFormScreen: React.FC<TagFormScreenProps> = ({
+  navigateTo,
+  tag,
+  showToast,
+}) => {
   const isEditMode = !!tag;
   const title = isEditMode ? 'タグを編集する' : 'タグを作成する';
 
@@ -879,7 +945,10 @@ const TagFormScreen: React.FC<TagFormScreenProps> = ({ navigateTo, tag }) => {
             <div>
               {isEditMode && (
                 <button
-                  onClick={() => navigateTo('home')} // 本来は削除
+                  onClick={() => {
+                    showToast('タグを削除しました');
+                    navigateTo('home');
+                  }}
                   className="px-4 py-2 rounded-lg border border-red-300 text-red-600 font-medium hover:bg-red-100 hover:border-red-400 transition-colors flex items-center"
                 >
                   <Trash2 size={16} className="mr-1.5" />
@@ -895,7 +964,12 @@ const TagFormScreen: React.FC<TagFormScreenProps> = ({ navigateTo, tag }) => {
                 キャンセル
               </button>
               <button
-                onClick={() => navigateTo('home')} // 本来は保存
+                onClick={() => {
+                  showToast(
+                    isEditMode ? 'タグを更新しました' : 'タグを作成しました'
+                  );
+                  navigateTo('home');
+                }}
                 className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm hover:shadow transition-all"
               >
                 {isEditMode ? '更新' : '作成'}
@@ -912,10 +986,22 @@ const TagFormScreen: React.FC<TagFormScreenProps> = ({ navigateTo, tag }) => {
 export default function TaskOrientedUI() {
   const [screen, setScreen] = useState<ScreenName>('home');
   const [screenProps, setScreenProps] = useState<ScreenProps>({}); // 画面に渡すデータ
+  const [toast, setToast] = useState<ToastType>({
+    message: '',
+    visible: false,
+  });
 
   const navigateTo = (screenName: ScreenName, props: ScreenProps = {}) => {
     setScreen(screenName);
     setScreenProps(props);
+  };
+
+  const showToast = (message: string) => {
+    setToast({ message, visible: true });
+  };
+
+  const hideToast = () => {
+    setToast({ message: '', visible: false });
   };
 
   const renderScreen = () => {
@@ -927,14 +1013,28 @@ export default function TaskOrientedUI() {
           <BookListScreen navigateTo={navigateTo} mode={screenProps.mode} />
         );
       case 'addBookForm':
-        return <BookFormScreen navigateTo={navigateTo} book={undefined} />;
+        return (
+          <BookFormScreen
+            navigateTo={navigateTo}
+            book={undefined}
+            showToast={showToast}
+          />
+        );
       case 'editBookForm':
         return (
-          <BookFormScreen navigateTo={navigateTo} book={screenProps.book} />
+          <BookFormScreen
+            navigateTo={navigateTo}
+            book={screenProps.book}
+            showToast={showToast}
+          />
         );
       case 'reviewBookForm':
         return screenProps.book ? (
-          <BookReviewScreen navigateTo={navigateTo} book={screenProps.book} />
+          <BookReviewScreen
+            navigateTo={navigateTo}
+            book={screenProps.book}
+            showToast={showToast}
+          />
         ) : null;
       case 'viewBookForm':
         return screenProps.book ? (
@@ -945,6 +1045,7 @@ export default function TaskOrientedUI() {
           <DeleteConfirmScreen
             navigateTo={navigateTo}
             book={screenProps.book}
+            showToast={showToast}
           />
         ) : null;
       case 'recentBooks':
@@ -952,9 +1053,21 @@ export default function TaskOrientedUI() {
       case 'tagList':
         return <TagListScreen navigateTo={navigateTo} />;
       case 'addTagForm':
-        return <TagFormScreen navigateTo={navigateTo} tag={undefined} />;
+        return (
+          <TagFormScreen
+            navigateTo={navigateTo}
+            tag={undefined}
+            showToast={showToast}
+          />
+        );
       case 'editTagForm':
-        return <TagFormScreen navigateTo={navigateTo} tag={screenProps.tag} />;
+        return (
+          <TagFormScreen
+            navigateTo={navigateTo}
+            tag={screenProps.tag}
+            showToast={showToast}
+          />
+        );
       default:
         return <HomeScreen navigateTo={navigateTo} />;
     }
@@ -962,6 +1075,11 @@ export default function TaskOrientedUI() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-gray-900">
+      <Toast
+        message={toast.message}
+        visible={toast.visible}
+        onClose={hideToast}
+      />
       {renderScreen()}
     </div>
   );
