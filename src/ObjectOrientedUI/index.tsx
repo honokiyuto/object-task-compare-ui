@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Search,
   BookOpen,
@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Menu,
   Check,
+  CheckCircle,
 } from 'lucide-react';
 
 // --- 型定義 ---
@@ -135,6 +136,49 @@ const MOCK_ALL_BOOKS: BookType[] = [
   },
 ];
 
+// --- トースト用の型定義 ---
+type ToastType = {
+  message: string;
+  visible: boolean;
+};
+
+// --- トーストコンポーネント ---
+interface ToastProps {
+  message: string;
+  visible: boolean;
+  onClose: () => void;
+}
+
+const Toast: React.FC<ToastProps> = ({ message, visible, onClose }) => {
+  useEffect(() => {
+    if (visible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [visible, onClose]);
+
+  if (!visible) return null;
+
+  return (
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top duration-300">
+      <div className="bg-green-50 rounded-lg shadow-xl border border-green-200 p-4 flex items-center space-x-3 min-w-[320px]">
+        <div className="shrink-0 bg-green-100 rounded-full p-1">
+          <CheckCircle className="w-6 h-6 text-green-600" />
+        </div>
+        <p className="text-green-800 font-medium grow">{message}</p>
+        <button
+          onClick={onClose}
+          className="shrink-0 text-green-600 hover:text-green-700 transition-colors p-1 hover:bg-green-100 rounded-full"
+        >
+          <X size={18} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // --- コンポーネント ---
 interface BookCardProps {
   book: BookType;
@@ -172,6 +216,7 @@ interface BookFormModalProps {
   onClose: () => void;
   bookToEdit?: BookType | null;
   onDelete: (book: BookType) => void;
+  onSave: (book: BookType, isEditMode: boolean) => void;
 }
 
 const BookFormModal: React.FC<BookFormModalProps> = ({
@@ -179,10 +224,29 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
   onClose,
   bookToEdit = null,
   onDelete,
+  onSave,
 }) => {
   const [selectedTags, setSelectedTags] = useState<string[]>(
     bookToEdit?.tags || []
   );
+  const [title, setTitle] = useState(bookToEdit?.title || '');
+  const [author, setAuthor] = useState(bookToEdit?.author || '');
+  const [isbn, setIsbn] = useState(bookToEdit?.isbn || '');
+  const [purchaseDate, setPurchaseDate] = useState(
+    bookToEdit?.purchaseDate || ''
+  );
+  const [review, setReview] = useState(bookToEdit?.review || '');
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedTags(bookToEdit?.tags || []);
+      setTitle(bookToEdit?.title || '');
+      setAuthor(bookToEdit?.author || '');
+      setIsbn(bookToEdit?.isbn || '');
+      setPurchaseDate(bookToEdit?.purchaseDate || '');
+      setReview(bookToEdit?.review || '');
+    }
+  }, [isOpen, bookToEdit]);
 
   if (!isOpen) return null;
 
@@ -250,7 +314,8 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  defaultValue={isEditMode ? bookToEdit?.title : ''}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="例: 星を継ぐもの"
                 />
@@ -261,7 +326,8 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  defaultValue={isEditMode ? bookToEdit?.author : ''}
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="例: ジェイムズ・P・ホーガン"
                 />
@@ -274,7 +340,8 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                   </label>
                   <input
                     type="text"
-                    defaultValue={isEditMode ? bookToEdit?.isbn || '' : ''}
+                    value={isbn}
+                    onChange={(e) => setIsbn(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     placeholder="例: 978-4-..."
                   />
@@ -285,9 +352,8 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                   </label>
                   <input
                     type="date"
-                    defaultValue={
-                      isEditMode ? bookToEdit?.purchaseDate || '' : ''
-                    }
+                    value={purchaseDate}
+                    onChange={(e) => setPurchaseDate(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   />
                 </div>
@@ -324,7 +390,8 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                   感想文
                 </label>
                 <textarea
-                  defaultValue={isEditMode ? bookToEdit?.review || '' : ''}
+                  value={review}
+                  onChange={(e) => setReview(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none h-32 resize-none"
                   placeholder="感想やメモを入力..."
                 ></textarea>
@@ -356,7 +423,23 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
             >
               キャンセル
             </button>
-            <button className="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm hover:shadow transition-all whitespace-nowrap">
+            <button
+              onClick={() => {
+                const bookData: BookType = {
+                  id: isEditMode ? bookToEdit!.id : Date.now(),
+                  title,
+                  author,
+                  isbn,
+                  tags: selectedTags,
+                  review,
+                  purchaseDate,
+                  cover: isEditMode ? bookToEdit!.cover : '',
+                };
+                onSave(bookData, isEditMode);
+                onClose();
+              }}
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm hover:shadow transition-all whitespace-nowrap"
+            >
               {isEditMode ? '更新する' : '登録する'}
             </button>
           </div>
@@ -370,12 +453,14 @@ interface DeleteConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   bookToDelete: BookType | null;
+  onConfirmDelete: () => void;
 }
 
 const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
   isOpen,
   onClose,
   bookToDelete,
+  onConfirmDelete,
 }) => {
   if (!isOpen || !bookToDelete) return null;
 
@@ -405,7 +490,13 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
             >
               キャンセル
             </button>
-            <button className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-sm hover:shadow transition-all whitespace-nowrap">
+            <button
+              onClick={() => {
+                onConfirmDelete();
+                onClose();
+              }}
+              className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-sm hover:shadow transition-all whitespace-nowrap"
+            >
               削除する
             </button>
           </div>
@@ -790,24 +881,37 @@ export default function ObjectOrientedUI() {
   const [isTagBooksModalOpen, setIsTagBooksModalOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<TagType | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [books, setBooks] = useState<BookType[]>(MOCK_ALL_BOOKS);
+  const [toast, setToast] = useState<ToastType>({
+    message: '',
+    visible: false,
+  });
+
+  const showToast = (message: string) => {
+    setToast({ message, visible: true });
+  };
+
+  const hideToast = () => {
+    setToast({ message: '', visible: false });
+  };
 
   const sortedBooks = useMemo(() => {
-    const books = [...MOCK_ALL_BOOKS];
+    const booksCopy = [...books];
     switch (sortBy) {
       case 'newest':
-        return books.sort(
+        return booksCopy.sort(
           (a, b) =>
             new Date(b.purchaseDate).getTime() -
             new Date(a.purchaseDate).getTime()
         );
       case 'title':
-        return books.sort((a, b) => a.title.localeCompare(b.title, 'ja'));
+        return booksCopy.sort((a, b) => a.title.localeCompare(b.title, 'ja'));
       case 'author':
-        return books.sort((a, b) => a.author.localeCompare(b.author, 'ja'));
+        return booksCopy.sort((a, b) => a.author.localeCompare(b.author, 'ja'));
       default:
-        return books;
+        return booksCopy;
     }
-  }, [sortBy]);
+  }, [sortBy, books]);
 
   const handleRegisterClick = () => {
     setSelectedBook(null);
@@ -822,6 +926,23 @@ export default function ObjectOrientedUI() {
   const handleDeleteClick = (book: BookType) => {
     setSelectedBook(book);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleSaveBook = (book: BookType, isEditMode: boolean) => {
+    if (isEditMode) {
+      setBooks(books.map((b) => (b.id === book.id ? book : b)));
+      showToast('図書情報を更新しました');
+    } else {
+      setBooks([...books, book]);
+      showToast('図書を登録しました');
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedBook) {
+      setBooks(books.filter((b) => b.id !== selectedBook.id));
+      showToast('図書を削除しました');
+    }
   };
 
   const handleTagClick = (tag: TagType) => {
@@ -1072,24 +1193,32 @@ export default function ObjectOrientedUI() {
         </button>
       )}
 
+      <Toast
+        message={toast.message}
+        visible={toast.visible}
+        onClose={hideToast}
+      />
+
       <BookFormModal
         isOpen={isBookFormModalOpen}
         onClose={() => setIsBookFormModalOpen(false)}
         bookToEdit={selectedBook}
         onDelete={handleDeleteClick}
+        onSave={handleSaveBook}
       />
 
       <DeleteConfirmModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         bookToDelete={selectedBook}
+        onConfirmDelete={handleConfirmDelete}
       />
 
       <TagBooksModal
         isOpen={isTagBooksModalOpen}
         onClose={() => setIsTagBooksModalOpen(false)}
         tag={selectedTag}
-        allBooks={MOCK_ALL_BOOKS}
+        allBooks={books}
       />
     </div>
   );
