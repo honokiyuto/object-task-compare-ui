@@ -2,5 +2,8 @@
 
 このプロジェクトは、オブジェクト指向UIデザインとタスク指向UIデザインの違いを比較するためのデモアプリケーションです。ユーザーはボタン一つで両方のUIモードを切り替えることができます。
 
-# 以下の勉強会で発表したデモです
-https://speakerdeck.com/teamlab/object-oriented-ui-design
+- ほぼAIが作っているので、ソースコードは読みにくいです。（あくまでデザインの説明用です）
+- ReactとViteでビルドしてます。
+- データはモックです
+- 以下の勉強会で発表したデモです
+   - https://speakerdeck.com/teamlab/object-oriented-ui-design 
